@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #12121e;
+  --foreground: #ececf1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  /* Prevent iOS rubber-band bounce causing layout shifts */
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Use the full screen including notch/home bar area */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Remove 300ms tap delay on all buttons */
+button, a {
+  touch-action: manipulation;
+}
+
+/* iPhone home bar padding for the input area */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Mic pulse animation */
+.mic-pulse {
+  animation: mic-pulse-ring 1.5s ease-in-out infinite;
+}
+
+@keyframes mic-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45);
+  }
+  60% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Card fade-in */
+.card-fade-in {
+  animation: card-fade 0.25s ease-out forwards;
+}
+
+@keyframes card-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a3a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4a;
+}
