@@ -1,6 +1,8 @@
 'use client';
 
 import { CardItem } from '@/lib/types';
+import ShareButton from './ShareButton';
+import { formatSavedItemsAsText } from '@/lib/shareFormatter';
 
 interface SavedItem extends CardItem {
   savedId: string;
@@ -13,6 +15,7 @@ interface SavedDrawerProps {
   savedItems: SavedItem[];
   onRemove: (savedId: string) => void;
   onClearAll: () => void;
+  userCity?: string | null;
 }
 
 const typeLabels: Record<string, { label: string; icon: string }> = {
@@ -29,6 +32,7 @@ export default function SavedDrawer({
   savedItems,
   onRemove,
   onClearAll,
+  userCity,
 }: SavedDrawerProps) {
   const grouped = savedItems.reduce(
     (acc, item) => {
@@ -118,7 +122,14 @@ export default function SavedDrawer({
           </div>
 
           {savedItems.length > 0 && (
-            <div className="border-t border-[#2a2a3a] px-4 py-3">
+            <div className="border-t border-[#2a2a3a] px-4 py-3 space-y-2">
+              <div className="flex justify-center">
+                <ShareButton
+                  content={formatSavedItemsAsText(savedItems, userCity)}
+                  title="My BackpackBuddy AU Trip"
+                  variant="full"
+                />
+              </div>
               <button
                 onClick={onClearAll}
                 className="w-full rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20"

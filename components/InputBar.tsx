@@ -1,6 +1,13 @@
 'use client';
 
-import { useRef, useState, KeyboardEvent, useEffect } from 'react';
+import { useRef, useState, KeyboardEvent, useEffect, useLayoutEffect } from 'react';
+
+// SSR-safe hook — only returns true after first client paint
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useLayoutEffect(() => { setMounted(true); }, []);
+  return mounted;
+}
 
 interface InputBarProps {
   isListening: boolean;
@@ -13,6 +20,9 @@ interface InputBarProps {
   onSubmit: (text: string) => void;
   onStopSpeaking: () => void;
   disabled: boolean;
+  onNearMe?: () => void;
+  nearMeLoading?: boolean;
+  nearMeSuburb?: string | null;
 }
 
 export default function InputBar({
@@ -26,9 +36,13 @@ export default function InputBar({
   onSubmit,
   onStopSpeaking,
   disabled,
+  onNearMe,
+  nearMeLoading,
+  nearMeSuburb,
 }: InputBarProps) {
   const [textValue, setTextValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mounted = useMounted();
 
   // Auto-resize textarea
   const resize = () => {
@@ -93,6 +107,25 @@ export default function InputBar({
               : 'border-[#32324a] bg-[#1c1c2a] hover:border-[#42425a]'
           }`}
         >
+          {/* Near Me button — only after mount to avoid SSR/client mismatch */}
+          {mounted && onNearMe && !isListening && !isSpeaking && (
+            <button
+              onClick={onNearMe}
+              disabled={disabled || nearMeLoading}
+              className={`mb-0.5 flex flex-shrink-0 items-center gap-1 self-end rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                nearMeSuburb
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'bg-[#2a2a3a] text-[#8e8ea0] hover:text-emerald-400'
+              } ${nearMeLoading ? 'animate-pulse' : ''}`}
+            >
+              <svg className={`h-3 w-3 ${nearMeLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {nearMeSuburb || 'Near Me'}
+            </button>
+          )}
+
           {/* Stop speaking pill — inline on the left */}
           {isSpeaking && !isListening && (
             <button
