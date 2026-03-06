@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const { sessionId, userTranscript, preferences, locationText } = body;
+  const { sessionId, userTranscript, preferences, locationText, weatherContext, budgetContext, geoContext } = body;
 
   if (!sessionId || !userTranscript) {
     return new Response(
@@ -145,7 +145,12 @@ export async function POST(request: Request) {
   addToHistory(sessionId, 'user', userTranscript);
 
   // Build messages for Groq
-  const systemPrompt = buildSystemPrompt(session);
+  const systemPrompt = buildSystemPrompt({
+    memory: session,
+    weatherContext: weatherContext as string | undefined,
+    budgetContext: budgetContext as string | undefined,
+    geoContext: geoContext as { lat: number; lng: number; suburb?: string } | undefined,
+  });
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: systemPrompt },
     ...session.conversationHistory.map((msg) => ({

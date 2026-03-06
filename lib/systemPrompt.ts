@@ -1,13 +1,26 @@
 import { SessionMemory } from './types';
 
-export function buildSystemPrompt(memory: SessionMemory): string {
+export interface PromptContext {
+  memory: SessionMemory;
+  weatherContext?: string;
+  budgetContext?: string;
+  geoContext?: { lat: number; lng: number; suburb?: string };
+}
+
+export function buildSystemPrompt(ctx: PromptContext): string {
+  const { memory, weatherContext, budgetContext, geoContext } = ctx;
+
   const locationLine = memory.lastLocation
     ? `The user is in: ${memory.lastLocation}`
     : 'Location unknown — ask which city in follow_up_question';
 
-  const extraContext = [
+  const contextParts = [
+    locationLine,
     memory.tripDuration && `Trip duration: ${memory.tripDuration}`,
     memory.dates && `Travel dates: ${memory.dates}`,
+    weatherContext,
+    budgetContext && `Budget: ${budgetContext}. Tailor recommendations to fit the remaining budget. If budget is low, focus on free activities, cheap eats, and walking routes.`,
+    geoContext && `User's exact location: ${geoContext.suburb || 'unknown suburb'} (${geoContext.lat.toFixed(4)}, ${geoContext.lng.toFixed(4)}). Give hyper-local recommendations within walking distance (under 1km). Include approximate walking times.`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -15,8 +28,7 @@ export function buildSystemPrompt(memory: SessionMemory): string {
   return `You are BackpackBuddy AU — a casual, friendly backpacker travel mate for Australia. Talk like a mate, not a bot.
 
 CONTEXT:
-${locationLine}
-${extraContext}
+${contextParts}
 
 RULES:
 - Australia only. Assume the user is a first-timer who knows nothing about Australia.

@@ -6,9 +6,24 @@ import ChatPanel from '@/components/ChatPanel';
 import InputBar from '@/components/InputBar';
 import CityModal from '@/components/CityModal';
 import SavedDrawer from '@/components/SavedDrawer';
+import SOSPanel from '@/components/SOSPanel';
+import BudgetTracker from '@/components/BudgetTracker';
+import SlangGuide from '@/components/SlangGuide';
+import CurrencyConverter from '@/components/CurrencyConverter';
+import PackingList from '@/components/PackingList';
+import MapViewWrapper from '@/components/MapViewWrapper';
+import ItineraryBuilder from '@/components/ItineraryBuilder';
+import WeatherPanel from '@/components/WeatherPanel';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useSavedItems } from '@/hooks/useSavedItems';
+import { useWeather } from '@/hooks/useWeather';
+import { useBudget } from '@/hooks/useBudget';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useCurrency } from '@/hooks/useCurrency';
+import { usePackingList } from '@/hooks/usePackingList';
+import { useItinerary } from '@/hooks/useItinerary';
+import { getWeatherAdvice } from '@/lib/weatherIcons';
 import { ChatMessage, AppStatus, LLMResponse, CardItem } from '@/lib/types';
 
 function generateId(): string {
@@ -47,9 +62,18 @@ export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<AppStatus>('ready');
   const [savedDrawerOpen, setSavedDrawerOpen] = useState(false);
+  const [sosPanelOpen, setSOSPanelOpen] = useState(false);
+  const [budgetPanelOpen, setBudgetPanelOpen] = useState(false);
+  const [slangGuideOpen, setSlangGuideOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [packingListOpen, setPackingListOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [itineraryOpen, setItineraryOpen] = useState(false);
+  const [weatherPanelOpen, setWeatherPanelOpen] = useState(false);
   const [userCity, setUserCity] = useState<string | null>(null);
   // Always show city modal on every page load — session resets anyway
   const [showCityModal, setShowCityModal] = useState(true);
+  const [changeCityModalOpen, setChangeCityModalOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -65,6 +89,12 @@ export default function Home() {
 
   const { speak, stop: stopSpeaking, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis();
   const { savedItems, saveItem, removeItem, clearAll, isItemSaved } = useSavedItems();
+  const { weather, isLoading: weatherLoading } = useWeather(userCity);
+  const budget = useBudget();
+  const geo = useGeolocation();
+  const currency = useCurrency();
+  const packing = usePackingList();
+  const itinerary = useItinerary();
 
   useEffect(() => {
     if (isListening) {
@@ -107,8 +137,10 @@ export default function Home() {
           body: JSON.stringify({
             sessionId,
             userTranscript: userText.trim(),
-            // Send city on every request so it's always in session memory
             ...(userCity ? { locationText: userCity } : {}),
+            ...(weather ? { weatherContext: getWeatherAdvice(weather.description, weather.temp) } : {}),
+            ...(budget.budgetContextString ? { budgetContext: budget.budgetContextString } : {}),
+            ...(geo.position ? { geoContext: { lat: geo.position.lat, lng: geo.position.lng, suburb: geo.suburb || undefined } } : {}),
           }),
           signal: controller.signal,
         });
@@ -190,7 +222,7 @@ export default function Home() {
         setStatus('ready');
       }
     },
-    [sessionId, userCity, stopSpeaking, resetTranscript, speak, ttsSupported]
+    [sessionId, userCity, weather, budget.budgetContextString, geo.position, geo.suburb, stopSpeaking, resetTranscript, speak, ttsSupported]
   );
 
   const handleCityModalComplete = useCallback((city: string | null) => {
@@ -199,6 +231,12 @@ export default function Home() {
       setUserCity(city);
     }
   }, []);
+
+  const handleNearMe = useCallback(async () => {
+    const result = await geo.requestLocation();
+    const sub = result?.suburb || geo.suburb || 'my current location';
+    handleSubmit(`What's near me right now? I'm at ${sub}${userCity ? `, ${userCity}` : ''}`);
+  }, [geo, handleSubmit, userCity]);
 
   const handleSaveCard = useCallback(
     (card: CardItem) => saveItem(card),
@@ -210,32 +248,101 @@ export default function Home() {
       {/* City onboarding modal */}
       {showCityModal && <CityModal onComplete={handleCityModalComplete} />}
 
+      {/* Change city modal (from header city chip) */}
+      {changeCityModalOpen && (
+        <CityModal
+          onComplete={(city) => {
+            setChangeCityModalOpen(false);
+            if (city) setUserCity(city);
+          }}
+        />
+      )}
+
       <Header
         status={status}
         userCity={userCity}
         onToggleSaved={() => setSavedDrawerOpen(!savedDrawerOpen)}
         savedCount={savedItems.length}
+        onToggleSOS={() => setSOSPanelOpen(true)}
+        weather={weather}
+        weatherLoading={weatherLoading}
+        onToggleBudget={() => setBudgetPanelOpen(true)}
+        budgetRemaining={budget.remaining}
+        dailyBudget={budget.dailyBudget}
+        onToggleSlang={() => setSlangGuideOpen(true)}
+        onToggleCurrency={() => setCurrencyOpen(true)}
+        onTogglePacking={() => setPackingListOpen(true)}
+        packingProgress={packing.progress}
+        onToggleMap={() => setMapOpen(!mapOpen)}
+        mapOpen={mapOpen}
+        onToggleItinerary={() => setItineraryOpen(true)}
+        itineraryCount={itinerary.items.length}
+        onChangeCity={() => setChangeCityModalOpen(true)}
+        onToggleWeather={() => setWeatherPanelOpen(true)}
       />
 
-      <ChatPanel
-        messages={messages}
-        onSave={handleSaveCard}
-        isItemSaved={isItemSaved}
-        onSuggestionClick={handleSubmit}
+      {/* Stacked panels — both always mounted with real dimensions.
+          Map sits behind chat; swap visibility via z-index + pointer-events.
+          This avoids display:none which breaks Leaflet tile loading. */}
+      <div className="relative flex-1 overflow-hidden">
+        {/* Map layer — always rendered so Leaflet always has real pixel size */}
+        <div className={`absolute inset-0 flex flex-col transition-opacity duration-200 ${mapOpen ? 'z-10 opacity-100' : 'z-0 opacity-0 pointer-events-none'}`}>
+          <MapViewWrapper
+            messages={messages}
+            userCity={userCity}
+            onClose={() => setMapOpen(false)}
+            isVisible={mapOpen}
+          />
+        </div>
+
+        {/* Chat layer */}
+        <div className={`absolute inset-0 flex flex-col transition-opacity duration-200 ${mapOpen ? 'z-0 opacity-0 pointer-events-none' : 'z-10 opacity-100'}`}>
+          <ChatPanel
+            messages={messages}
+            onSave={handleSaveCard}
+            isItemSaved={isItemSaved}
+            onSuggestionClick={handleSubmit}
+            userCity={userCity}
+            onOpenMap={() => setMapOpen(true)}
+          />
+        </div>
+      </div>
+
+      {!mapOpen && (
+        <InputBar
+          isListening={isListening}
+          isSupported={sttSupported}
+          transcript={transcript}
+          interimTranscript={interimTranscript}
+          isSpeaking={isSpeaking}
+          onStart={startListening}
+          onStop={stopListening}
+          onSubmit={handleSubmit}
+          onStopSpeaking={stopSpeaking}
+          disabled={status === 'thinking'}
+          onNearMe={geo.isSupported ? handleNearMe : undefined}
+          nearMeLoading={geo.isLoading}
+          nearMeSuburb={geo.suburb}
+        />
+      )}
+
+      <BudgetTracker
+        isOpen={budgetPanelOpen}
+        onClose={() => setBudgetPanelOpen(false)}
+        dailyBudget={budget.dailyBudget}
+        spent={budget.spent}
+        remaining={budget.remaining}
+        expenses={budget.expenses}
+        onSetBudget={budget.setBudget}
+        onAddExpense={budget.addExpense}
+        onRemoveExpense={budget.removeExpense}
+        onResetDay={budget.resetDay}
+      />
+
+      <SOSPanel
+        isOpen={sosPanelOpen}
+        onClose={() => setSOSPanelOpen(false)}
         userCity={userCity}
-      />
-
-      <InputBar
-        isListening={isListening}
-        isSupported={sttSupported}
-        transcript={transcript}
-        interimTranscript={interimTranscript}
-        isSpeaking={isSpeaking}
-        onStart={startListening}
-        onStop={stopListening}
-        onSubmit={handleSubmit}
-        onStopSpeaking={stopSpeaking}
-        disabled={status === 'thinking'}
       />
 
       <SavedDrawer
@@ -244,6 +351,64 @@ export default function Home() {
         savedItems={savedItems}
         onRemove={removeItem}
         onClearAll={clearAll}
+        userCity={userCity}
+      />
+
+      <SlangGuide
+        isOpen={slangGuideOpen}
+        onClose={() => setSlangGuideOpen(false)}
+      />
+
+      <WeatherPanel
+        isOpen={weatherPanelOpen}
+        onClose={() => setWeatherPanelOpen(false)}
+        weather={weather}
+        isLoading={weatherLoading}
+        city={userCity}
+        onChangeCity={(city) => {
+          setUserCity(city);
+          setWeatherPanelOpen(false);
+        }}
+      />
+
+      <CurrencyConverter
+        isOpen={currencyOpen}
+        onClose={() => setCurrencyOpen(false)}
+        rates={currency.rates}
+        homeCurrency={currency.homeCurrency}
+        onChangeHomeCurrency={currency.changeHomeCurrency}
+        convert={currency.convert}
+        isLoading={currency.isLoading}
+      />
+
+      <PackingList
+        isOpen={packingListOpen}
+        onClose={() => setPackingListOpen(false)}
+        items={packing.items}
+        onToggle={packing.toggleItem}
+        onAdd={packing.addItem}
+        onRemove={packing.removeItem}
+        onReset={packing.resetAll}
+        checkedCount={packing.checkedCount}
+        totalCount={packing.totalCount}
+        progress={packing.progress}
+      />
+
+      <ItineraryBuilder
+        isOpen={itineraryOpen}
+        onClose={() => setItineraryOpen(false)}
+        days={itinerary.days}
+        onSetDays={itinerary.setDays}
+        savedItems={savedItems}
+        onImportFromSaved={itinerary.importFromSaved}
+        getUnassigned={itinerary.getUnassigned}
+        getItemsForDay={itinerary.getItemsForDay}
+        onAssignToDay={itinerary.assignToDay}
+        onUnassign={itinerary.unassignItem}
+        onRemove={itinerary.removeItem}
+        onMoveUp={itinerary.moveItemUp}
+        onMoveDown={itinerary.moveItemDown}
+        onExport={itinerary.exportAsText}
       />
     </div>
   );

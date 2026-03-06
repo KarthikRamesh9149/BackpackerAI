@@ -54,6 +54,34 @@ export interface TurnRequest {
   userTranscript: string;
   preferences: Preferences;
   locationText?: string;
+  weatherContext?: string;
+  budgetContext?: string;
+  geoContext?: { lat: number; lng: number; suburb?: string };
+}
+
+// === Weather ===
+export interface WeatherData {
+  temp: number;
+  feelsLike: number;
+  description: string;
+  icon: string;
+  humidity: number;
+  windSpeed: number;
+}
+
+// === Budget ===
+export interface Expense {
+  id: string;
+  amount: number;
+  category: string;
+  note?: string;
+  timestamp: number;
+}
+
+export interface BudgetData {
+  dailyBudget: number;
+  expenses: Expense[];
+  date: string;
 }
 
 // === Frontend Chat ===

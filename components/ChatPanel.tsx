@@ -10,6 +10,7 @@ interface ChatPanelProps {
   isItemSaved: (title: string) => boolean;
   onSuggestionClick: (text: string) => void;
   userCity: string | null;
+  onOpenMap?: () => void;
 }
 
 /**
@@ -67,6 +68,7 @@ export default function ChatPanel({
   isItemSaved,
   onSuggestionClick,
   userCity,
+  onOpenMap,
 }: ChatPanelProps) {
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
   const prevLengthRef = useRef(0);
@@ -148,11 +150,24 @@ export default function ChatPanel({
                   </div>
 
                   {msg.cards && msg.cards.length > 0 && (
-                    <CardsPanel
-                      cards={msg.cards}
-                      onSave={onSave}
-                      isItemSaved={isItemSaved}
-                    />
+                    <>
+                      <CardsPanel
+                        cards={msg.cards}
+                        onSave={onSave}
+                        isItemSaved={isItemSaved}
+                      />
+                      {onOpenMap && msg.cards.some(c => ['eat', 'stay', 'plan'].includes(c.type)) && (
+                        <button
+                          onClick={onOpenMap}
+                          className="flex items-center gap-1.5 rounded-lg bg-[#1e2a3a] border border-blue-500/25 px-3 py-1.5 text-xs text-blue-400 transition-all hover:bg-blue-500/15 hover:border-blue-500/40"
+                        >
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          View on Map
+                        </button>
+                      )}
+                    </>
                   )}
 
                   {msg.followUp && (
