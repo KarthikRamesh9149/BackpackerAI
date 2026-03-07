@@ -10,6 +10,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { TurnRequest, LLMResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow up to 60s on Vercel (covers full LLM stream)
 
 function validateLLMResponse(obj: unknown): LLMResponse | null {
   if (!obj || typeof obj !== 'object') return null;
@@ -165,7 +166,8 @@ export async function POST(request: Request) {
     async start(controller) {
       let fullText = '';
 
-      try {
+      // Helper: attempt one Groq call, returns full accumulated text
+      async function attemptGroqCall(): Promise<string> {
         const groqStream = await groq.chat.completions.create({
           model: 'llama-3.3-70b-versatile',
           messages,
@@ -173,18 +175,31 @@ export async function POST(request: Request) {
           temperature: 0.7,
           max_tokens: 4096,
         });
-
+        let text = '';
         for await (const chunk of groqStream) {
           const content = chunk.choices[0]?.delta?.content;
           if (content) {
-            fullText += content;
-            // Stream chunk to client
+            text += content;
             controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ type: 'chunk', content })}\n\n`
-              )
+              encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content })}\n\n`)
             );
           }
+        }
+        return text;
+      }
+
+      try {
+        // First attempt
+        try {
+          fullText = await attemptGroqCall();
+        } catch (firstErr) {
+          // Log the real error so it shows in Vercel Runtime Logs
+          console.error('[turn] Groq first attempt failed:', firstErr instanceof Error ? firstErr.message : firstErr);
+          // Wait 1.5s then retry once
+          await new Promise((r) => setTimeout(r, 1500));
+          console.log('[turn] Retrying Groq call...');
+          fullText = await attemptGroqCall();
+          console.log('[turn] Retry succeeded');
         }
 
         // Try to parse the full response
@@ -214,6 +229,8 @@ export async function POST(request: Request) {
           )
         );
       } catch (err) {
+        // Both attempts failed — log full error for Vercel debugging
+        console.error('[turn] Groq failed after retry:', err instanceof Error ? err.message : err);
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         const fallback = fallbackResponse(errorMsg);
 
