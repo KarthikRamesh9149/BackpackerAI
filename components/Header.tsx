@@ -39,7 +39,8 @@ export default function Header({ status, userCity, onToggleSaved, savedCount, on
 
   return (
     <header className="flex-shrink-0 border-b border-[#22223a] bg-[#15152a]">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+      {/* Desktop header — hidden on mobile */}
+      <div className="hidden sm:flex mx-auto items-center justify-between px-4 py-3 max-w-3xl">
         <div className="flex items-center gap-3">
           {/* SOS Button */}
           <button
@@ -188,6 +189,29 @@ export default function Header({ status, userCity, onToggleSaved, savedCount, on
               </span>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* Mobile header — compact top bar */}
+      <div className="flex sm:hidden items-center justify-between px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🎒</span>
+          <span className="text-sm font-semibold text-white">BackpackBuddy</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {userCity && (
+            <button onClick={onChangeCity} className="flex items-center gap-0.5 rounded-full border border-[#3a3a52] bg-[#22223a] px-1.5 py-0.5 transition-colors active:scale-95" title="Change city">
+              <svg className="h-2.5 w-2.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-[10px] text-[#9e9eb2]">{userCity}</span>
+            </button>
+          )}
+          {statusInfo && (
+            <span className={`text-[10px] animate-pulse ${statusInfo.color}`}>
+              {statusInfo.label}
+            </span>
+          )}
         </div>
       </div>
     </header>

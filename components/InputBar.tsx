@@ -96,7 +96,7 @@ export default function InputBar({
   };
 
   return (
-    <div className="flex-shrink-0 px-3 pb-4 pt-2 bg-[#12121e] safe-bottom sm:px-4 sm:pb-5 sm:pt-3">
+    <div className="flex-shrink-0 px-3 pb-20 pt-2 bg-[#12121e] sm:pb-4 safe-bottom sm:px-4 sm:pt-3">
       <div className="mx-auto max-w-3xl">
         <div
           className={`relative flex items-end gap-2 rounded-2xl border px-4 py-3 shadow-lg transition-all duration-200 ${
@@ -122,7 +122,8 @@ export default function InputBar({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {nearMeSuburb || 'Near Me'}
+              <span className="hidden sm:inline">{nearMeSuburb || 'Near Me'}</span>
+              <span className="sm:hidden">📍</span>
             </button>
           )}
 
@@ -135,7 +136,7 @@ export default function InputBar({
               <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="6" y="6" width="12" height="12" rx="2" />
               </svg>
-              Stop
+              <span className="hidden sm:inline">Stop</span>
             </button>
           )}
 
