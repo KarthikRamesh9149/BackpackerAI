@@ -14,6 +14,7 @@ import PackingList from '@/components/PackingList';
 import MapViewWrapper from '@/components/MapViewWrapper';
 import ItineraryBuilder from '@/components/ItineraryBuilder';
 import WeatherPanel from '@/components/WeatherPanel';
+import MobileNav from '@/components/MobileNav';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useSavedItems } from '@/hooks/useSavedItems';
@@ -409,6 +410,24 @@ export default function Home() {
         onMoveUp={itinerary.moveItemUp}
         onMoveDown={itinerary.moveItemDown}
         onExport={itinerary.exportAsText}
+      />
+
+      {/* Mobile bottom navigation */}
+      <MobileNav
+        onToggleSOS={() => setSOSPanelOpen(true)}
+        onToggleSaved={() => setSavedDrawerOpen(!savedDrawerOpen)}
+        savedCount={savedItems.length}
+        onToggleSlang={() => setSlangGuideOpen(true)}
+        onToggleCurrency={() => setCurrencyOpen(true)}
+        onToggleBudget={() => setBudgetPanelOpen(true)}
+        budgetRemaining={budget.remaining}
+        onTogglePacking={() => setPackingListOpen(true)}
+        packingProgress={packing.progress}
+        onToggleMap={() => setMapOpen(!mapOpen)}
+        mapOpen={mapOpen}
+        onToggleItinerary={() => setItineraryOpen(true)}
+        itineraryCount={itinerary.items.length}
+        onToggleWeather={() => setWeatherPanelOpen(true)}
       />
     </div>
   );
