@@ -1,181 +1,201 @@
-# 🎒 BackpackBuddy AU
+# BackpackerAI
 
-**A voice-first AI travel companion built exclusively for backpackers exploring Australia.**
+> A voice-first AI travel companion for backpackers exploring Australia.
 
-Ask anything out loud. Get instant, localised recommendations — hostels, eats, activities, transport — all tailored to your city, budget, and the weather right now.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 
-![Built with Next.js 16](https://img.shields.io/badge/Built%20with-Next.js%2016-black?style=flat-square&logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06b6d4?style=flat-square&logo=tailwindcss) ![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-orange?style=flat-square)
+BackpackerAI powers **BackpackBuddy AU**, a mobile-oriented travel assistant that combines voice input, spoken responses, AI-generated recommendation cards, maps, weather, budget tracking, emergency information, itinerary planning, packing support, currency conversion, and Australia-specific cultural guidance.
 
----
+The project is intentionally lightweight: no auth system, no database, and no long-lived user account. A small set of Next.js API routes protects server-side API keys while the browser owns user state through `localStorage`.
 
-## What It Does
+## Why This Matters
 
-BackpackBuddy AU is a real-time, voice-activated travel assistant. You speak — it listens, thinks, and speaks back. Every response is grounded in your actual location, current weather, and remaining daily budget.
+Travel apps often split core backpacker workflows across search, maps, weather, notes, currency tools, emergency pages, and transit guides. BackpackerAI explores a more cohesive interface: ask in natural language, receive actionable cards, save useful answers, map places, keep a budget, and export a trip plan from the same screen.
 
-### Core Experience
-- **Voice in, voice out** — tap mic, ask your question, hear the answer read aloud
-- **Smart cards** — recommendations appear as tappable cards (save, share, pin on map)
-- **Context-aware** — every reply factors in your city, live weather, and budget remaining
+For reviewers, the repository demonstrates full-stack product thinking:
 
----
+- Clear separation between UI state, reusable hooks, API proxies, prompt construction, and static domain data.
+- Streamed LLM integration with response validation, JSON repair, retry handling, and rate limiting.
+- Practical offline-first decisions for safety, packing, slang, and culture data.
+- Client-side persistence without introducing unnecessary infrastructure.
+- CI-backed lint, typecheck, and production build verification.
 
-## Features
+## Product Positioning
 
-### 1. SOS Emergency Panel
-Tap the red **SOS** button anytime for instant safety info — works offline.
-- One-tap call to **000** (Emergency), **131 444** (Police), **1800 022 222** (Nurse on Call)
-- Embassy contacts for **20+ nationalities**
-- City-specific scam warnings and tourist trap alerts
-- Australian wildlife safety tips
-- Nearest hospital via Google Maps
-- **100% offline** — all data bundled, no API needed
+BackpackerAI is built for first-time and budget-conscious travelers in Australia who need direct, local, and practical answers:
 
-### 2. Live Weather + 7-Day Forecast
-- Real-time weather via **OpenWeatherMap** (temp, feels like, humidity, wind, visibility)
-- Full **7-day forecast** with rain probability and daily high/low
-- Apple Weather-style panel with rain probability bar chart
-- City search inside the weather panel
-- **Seasonal fallback** — accurate monthly estimates for 10 AU cities when key is not set
+- "What is cheap near me right now?"
+- "How do I get from Circular Quay to Bondi?"
+- "What should I do in Melbourne if it is raining?"
+- "How much have I got left today?"
+- "What emergency number do I call?"
 
-### 3. Daily Budget Tracker
-- Set a daily budget ($50 / $80 / $100 / $150 presets or custom)
-- Log expenses by category (Food, Transport, Activities, Accommodation, Other)
-- Progress bar: green → amber → red as you approach the limit
-- **AI-integrated** — assistant automatically suggests affordable options when budget is tight
-- Auto-resets at midnight; persists across page reloads via localStorage
+The assistant keeps the experience focused on Australia, backpacker constraints, weather context, remaining budget, and optional GPS-derived locality.
 
-### 4. Interactive Map View
-- All AI-recommended places geocoded and plotted as **colored pins** by category
-- **Default popular-place pins** for 9 major cities shown before any chat
-- Tap any pin to see place details and a save button
-- "View on Map" link appears in chat after location-based queries
-- Map always stays mounted in the background — no tile reload on tab switch
+## Feature Highlights
 
-### 5. GPS Near Me
-- Tap the **compass button** to detect your current location
-- Reverse-geocoded to suburb level via **Nominatim** (OpenStreetMap, free, no key needed)
-- Auto-submits "What's near me? I'm at [suburb]" to the AI
-- Walking-distance recommendations with estimated times
+### AI Travel Assistant
 
-### 6. Smart Itinerary Builder
-- Organise saved cards into a **day-by-day trip plan**
-- Set trip duration (1–14 days)
-- Move cards up/down to reorder within each day
-- **Export** your full itinerary as formatted text to share
-- Import all saved cards in one tap
+- Voice input through the browser Web Speech API.
+- Text fallback for browsers without speech recognition.
+- Text-to-speech responses through `SpeechSynthesis`.
+- Groq-powered Llama 3.3 70B responses via `/api/turn`.
+- Server-sent event streaming from the API route to the client.
+- Structured response schema with assistant text, spoken script, follow-up prompt, and typed recommendation cards.
+- JSON extraction, schema validation, JSON repair fallback, retry handling, and user-facing fallback response.
 
-### 7. Aussie Slang & Culture Guide
-- **67 slang terms** with meaning and example sentence
-- Categories: Greetings, Food & Drink, Places, General Slang, Culture Tips
-- Real-time search filter — type "arvo" → instantly see "Afternoon"
-- Culture section: tipping norms, driving side, thongs, shouting rounds, etc.
-- Fully offline — all data bundled
+### Recommendation Cards
 
-### 8. Currency Quick-Convert
-- Set your **home currency** once (30+ currencies, saved in localStorage)
-- Type any AUD amount — see instant conversion
-- Quick-glance view: USD, EUR, GBP, JPY, INR all at once
-- Live exchange rates via **ExchangeRate-API**, cached 6 hours server-side
+- AI responses become reusable cards with typed categories: `eat`, `stay`, `transport`, `plan`, and `essentials`.
+- Cards can be saved, removed, shared, and imported into the itinerary builder.
+- Card text is parsed for place names so locations can be geocoded and plotted on the map.
 
-### 9. Shareable Trip Cards
-- Every recommendation card has a **Share** button
-- Uses `navigator.share()` (native mobile share sheet) with clipboard fallback
-- **Share All** button in the Saved drawer — exports your entire saved list as formatted text
+### Map Experience
 
-### 10. Smart Packing Checklist
-- **44 Australia-specific default items** (Type I power adapter, SPF50+ sunscreen, reef-safe sunscreen for QLD, thongs, insect repellent, etc.)
-- Categorised: Documents, Clothing, Toiletries, Tech, Australia-Specific
-- Check off items as you pack; progress bar shows "12/25 packed"
-- Add custom items; persists across sessions via localStorage
+- Interactive map powered by `react-leaflet`, Leaflet, and OpenStreetMap/CARTO tiles.
+- 49 bundled popular-place pins across supported Australian cities.
+- Chat-derived locations are geocoded through Nominatim and rendered as colored pins.
+- The map and chat are kept mounted and swapped with stacking/opacity so Leaflet does not initialize inside `display: none`.
 
----
+### Weather-Aware Recommendations
+
+- `/api/weather` fetches OpenWeatherMap current conditions and 3-hour forecast data.
+- Forecast data is grouped into daily high/low, rain chance, humidity, wind, and icon summaries.
+- Weather responses are cached server-side for 30 minutes.
+- Seasonal fallback data is bundled for major Australian cities when no OpenWeatherMap key is configured or the API is unavailable.
+- Weather advice is injected into the LLM prompt so recommendations can adapt to rain, heat, cold, or clear conditions.
+
+### Budget Tracking
+
+- Daily AUD budget presets plus custom budget entry.
+- Expense logging by category: food, accommodation, transport, activities, and other.
+- Remaining budget is persisted in `localStorage`.
+- A new day keeps the budget amount and resets expenses.
+- Budget context is sent to the AI so low remaining spend can bias recommendations toward free or cheap options.
+
+### GPS "Near Me"
+
+- Browser geolocation with high-accuracy request settings and timeout handling.
+- Five-minute client-side cache for the last known position.
+- Reverse geocoding through Nominatim to derive suburb/neighborhood/city context.
+- The app auto-submits a locality-aware "What's near me?" request after GPS lookup.
+
+### Safety And Travel Utilities
+
+- SOS panel with Australian emergency numbers and tap-to-call links.
+- Embassy/high commission contact data for 23 nationalities.
+- City-specific scam warnings for supported cities.
+- Wildlife and sun-safety guidance stored locally.
+- Google Maps hospital search link.
+- 67-entry Aussie slang guide plus culture tips.
+- 44-item Australia-specific packing checklist with custom items and progress tracking.
+- Currency converter for AUD to 25 popular currencies, backed by ExchangeRate-API with approximate fallback rates.
+- Day-by-day itinerary builder with saved-card import, assignment, reordering, export, native share, and clipboard fallback.
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript 5 |
-| Styling | Tailwind CSS v4 |
-| LLM | Groq Cloud — Llama 3.3 70B Versatile (SSE streaming) |
-| Voice Input | Web Speech API (SpeechRecognition) |
-| Voice Output | Web Speech API (SpeechSynthesis) |
-| Map | react-leaflet + Leaflet + OpenStreetMap tiles |
-| Weather | OpenWeatherMap API |
-| Geocoding | Nominatim (OpenStreetMap — free, no key) |
-| Exchange Rates | ExchangeRate-API (free tier) |
-| Persistence | localStorage (no database) |
+| Area | Implementation |
+| --- | --- |
+| Framework | Next.js 16 App Router |
+| UI | React 19, TypeScript, Tailwind CSS v4 |
+| AI | Groq Cloud chat completions, `llama-3.3-70b-versatile` |
+| Streaming | Native `fetch`, `ReadableStream`, server-sent event parsing |
+| Voice | Browser Web Speech APIs: `SpeechRecognition`, `SpeechSynthesis` |
+| Maps | Leaflet, `react-leaflet`, OpenStreetMap/Nominatim, CARTO tiles |
+| Weather | OpenWeatherMap API with seasonal fallback |
+| Currency | ExchangeRate-API with approximate fallback rates |
+| Persistence | Browser `localStorage` plus in-memory server session state |
+| Quality | ESLint, TypeScript `--noEmit`, Next production build, GitHub Actions CI |
 
-**Zero database. Zero auth. Zero backend infrastructure** — just three Next.js API routes acting as secure server-side proxies.
+## Architecture
 
----
+```mermaid
+flowchart TD
+    User["Traveler"] --> UI["Next.js client UI"]
+    UI --> Hooks["Feature hooks"]
+    Hooks --> LocalStorage["localStorage"]
+    UI --> TurnAPI["/api/turn"]
+    UI --> WeatherAPI["/api/weather"]
+    UI --> CurrencyAPI["/api/currency"]
+    UI --> Geo["Browser geolocation"]
+    Geo --> Nominatim["Nominatim reverse geocoding"]
+    TurnAPI --> RateLimit["Session rate limiter"]
+    TurnAPI --> Session["In-memory session history"]
+    TurnAPI --> Prompt["Context-rich system prompt"]
+    Prompt --> Groq["Groq Llama 3.3 70B"]
+    WeatherAPI --> OWM["OpenWeatherMap"]
+    WeatherAPI --> Seasonal["Seasonal city fallback"]
+    CurrencyAPI --> Exchange["ExchangeRate-API"]
+    CurrencyAPI --> ApproxRates["Approximate fallback rates"]
+    UI --> Map["Leaflet map"]
+    Map --> Tiles["CARTO tile layer"]
+    Map --> Geocode["Nominatim place geocoding"]
+```
+
+### Request Flow
+
+1. The traveler speaks or types a question.
+2. The client sends the transcript, session id, selected city, weather advice, budget context, and optional GPS context to `/api/turn`.
+3. The API route rate-limits by session, updates in-memory session history, builds a system prompt, and streams Groq output.
+4. The route validates the final JSON payload and attempts a repair call if the model output is malformed.
+5. The client renders assistant text, speaks the response when supported, and displays recommendation cards.
+6. Saved cards can feed the map, itinerary builder, native share sheet, and clipboard export paths.
+
+### Server-Side API Routes
+
+- `app/api/turn/route.ts` - Groq proxy, SSE stream, prompt context, response validation, JSON repair, retry, fallback response, session memory, and rate limiting.
+- `app/api/weather/route.ts` - OpenWeatherMap proxy, daily forecast aggregation, 30-minute cache, seasonal city fallback, and 502 response when unavailable.
+- `app/api/currency/route.ts` - ExchangeRate-API proxy, six-hour cache, approximate rates without an API key, and stale-cache fallback on upstream failure.
+
+## Quality Signals
+
+- TypeScript is used across the app, hooks, API routes, and shared domain types.
+- CI runs on pull requests and pushes to `main`.
+- GitHub Actions uses `.nvmrc`, `npm ci`, `npm run lint`, `npm run typecheck`, and `npm run build`.
+- API keys are read only from server-side environment variables.
+- LLM output is treated as untrusted data and validated before rendering as structured cards.
+- The LLM route has a per-session in-memory request limiter: 20 requests per minute.
+- Weather and currency routes cache upstream responses to reduce latency and API pressure.
+- Static emergency, packing, slang, city, and map data keep key travel utilities available without a database.
 
 ## Project Structure
 
-```
-backpacker/
+```text
+BackpackerAI/
+├── .github/workflows/ci.yml        # Lint, typecheck, and build workflow
 ├── app/
 │   ├── api/
-│   │   ├── turn/route.ts        # LLM streaming proxy (Groq)
-│   │   ├── weather/route.ts     # Weather proxy + 7-day forecast builder
-│   │   └── currency/route.ts   # Exchange rate proxy (6hr server cache)
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx                 # Main app — all state + layout
-│
-├── components/
-│   ├── Header.tsx               # Nav bar with all action buttons
-│   ├── ChatPanel.tsx            # Message thread + card renderer
-│   ├── InputBar.tsx             # Mic + text input + NearMe button
-│   ├── CardItem.tsx             # Recommendation card component
-│   ├── CityModal.tsx            # City picker (onboarding + city change)
-│   ├── WeatherChip.tsx          # Compact weather display in header
-│   ├── WeatherPanel.tsx         # Apple Weather-style 7-day forecast panel
-│   ├── MapView.tsx              # Leaflet map with geocoded + default pins
-│   ├── MapViewWrapper.tsx       # Dynamic import wrapper (SSR disabled)
-│   ├── SOSPanel.tsx             # Emergency contacts panel
-│   ├── BudgetTracker.tsx        # Daily budget UI
-│   ├── SlangGuide.tsx           # Aussie slang dictionary
-│   ├── CurrencyConverter.tsx    # AUD converter widget
-│   ├── PackingList.tsx          # Packing checklist UI
-│   ├── ItineraryBuilder.tsx     # Day-by-day trip planner
-│   ├── SavedDrawer.tsx          # Saved cards side drawer
-│   └── ShareButton.tsx          # Share card component
-│
-├── hooks/
-│   ├── useSpeechRecognition.ts  # Web Speech API wrapper
-│   ├── useSpeechSynthesis.ts    # TTS wrapper
-│   ├── useSavedItems.ts         # localStorage saved cards
-│   ├── useWeather.ts            # Weather fetch + client cache
-│   ├── useBudget.ts             # Budget state + auto-reset
-│   ├── useGeolocation.ts        # GPS + Nominatim reverse geocode
-│   ├── useGeocoder.ts           # Place-name geocoding for map pins
-│   ├── useCurrency.ts           # Exchange rate fetch + conversion
-│   ├── usePackingList.ts        # Packing checklist state
-│   └── useItinerary.ts          # Itinerary day-assignment state
-│
-└── lib/
-    ├── systemPrompt.ts          # AI prompt builder (injects all context)
-    ├── types.ts                 # Shared TypeScript interfaces
-    ├── emergencyData.ts         # SOS static data (embassies, scams, wildlife)
-    ├── slangData.ts             # 67 slang terms + culture tips
-    ├── packingDefaults.ts       # 44 default packing items
-    ├── mapUtils.ts              # Markers, default pins, place-name extractor
-    ├── shareFormatter.ts        # Card-to-text formatter for sharing
-    └── weatherIcons.ts          # OWM icon code → emoji + weather advice text
+│   │   ├── currency/route.ts       # AUD exchange-rate proxy and fallback
+│   │   ├── turn/route.ts           # Groq LLM proxy and SSE stream
+│   │   └── weather/route.ts        # Weather proxy, cache, and fallback
+│   ├── globals.css                 # Tailwind v4 global styles
+│   ├── layout.tsx                  # App shell metadata
+│   └── page.tsx                    # Main client application
+├── components/                     # Panels, cards, navigation, map, and utilities
+├── hooks/                          # Browser APIs, localStorage, weather, budget, itinerary
+├── lib/                            # Prompting, shared types, static data, helpers
+├── public/                         # Static assets
+├── .env.example                    # Required and optional environment variables
+├── .nvmrc                          # Node version used by CI
+├── eslint.config.mjs               # ESLint configuration
+├── next.config.ts                  # Next.js configuration
+├── package.json                    # Scripts and dependencies
+└── tsconfig.json                   # TypeScript configuration
 ```
-
----
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20.9+ (Node 20.19 is pinned in `.nvmrc`)
-- A free [Groq Cloud](https://console.groq.com) API key (required)
-- *(Optional)* [OpenWeatherMap](https://openweathermap.org/api) API key — free tier; seasonal fallback works without it
-- *(Optional)* [ExchangeRate-API](https://www.exchangerate-api.com) key — free tier; app works without it
 
-### Installation
+- Node.js 20.9 or newer. The repo pins Node `20.19.0` in `.nvmrc`.
+- npm.
+- A Groq API key for AI responses.
+- Optional OpenWeatherMap and ExchangeRate-API keys for live weather and currency data.
+
+### Install
 
 ```bash
 git clone https://github.com/KarthikRamesh9149/BackpackerAI.git
@@ -183,34 +203,56 @@ cd BackpackerAI
 npm install
 ```
 
-### Environment Variables
+### Configure Environment
 
-Create `.env.local` at the project root:
+Create `.env.local` in the project root:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-OPENWEATHERMAP_API_KEY=your_owm_key_here
-EXCHANGE_RATE_API_KEY=your_exchange_rate_key_here
+OPENWEATHERMAP_API_KEY=your_openweathermap_api_key_here
+EXCHANGE_RATE_API_KEY=your_exchange_rate_api_key_here
 ```
 
-> Only `GROQ_API_KEY` is required. The app falls back to seasonal weather estimates and cached rates without the other keys.
+Environment variables:
 
-### Run
+| Variable | Required | Used by | Behavior when missing |
+| --- | --- | --- | --- |
+| `GROQ_API_KEY` | Yes | `/api/turn` | AI route returns `500` with `GROQ_API_KEY not configured`. |
+| `OPENWEATHERMAP_API_KEY` | No | `/api/weather` | Uses bundled seasonal estimates for supported Australian cities. |
+| `EXCHANGE_RATE_API_KEY` | No | `/api/currency` | Returns approximate fallback rates. |
+
+### Run Locally
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — allow microphone access when prompted.
+Open [http://localhost:3000](http://localhost:3000).
 
-### Build for Production
+Microphone, speech, share-sheet, clipboard, and geolocation features depend on browser support and permissions. Text input remains available when voice input is unsupported.
+
+### Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-### Quality Checks
+## Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server. |
+| `npm run build` | Create a production build. |
+| `npm start` | Serve the production build. |
+| `npm run lint` | Run ESLint. |
+| `npm run typecheck` | Run TypeScript with `--noEmit`. |
+| `npm test` | Alias for `npm run typecheck`. |
+| `npm run check` | Run lint, typecheck, and build in sequence. |
+
+## Testing And CI
+
+There is no dedicated unit or end-to-end test suite in this repository yet. The current test signal is static and build verification:
 
 ```bash
 npm run lint
@@ -218,82 +260,77 @@ npm run typecheck
 npm run build
 ```
 
-`npm run check` runs all three commands in the same order used by CI.
+CI runs the same lint/typecheck/build sequence through `.github/workflows/ci.yml` on pull requests and pushes to `main`.
 
----
+## Security And Privacy Notes
 
-## How It Works
+- API keys stay server-side in Next.js route handlers and should never be committed.
+- `.env.example` documents required variable names without secrets.
+- The app does not include authentication, a database, analytics, or a user account system.
+- Saved cards, packing items, budget data, home currency, and nationality selection are stored in the browser via `localStorage`.
+- Conversation history for the AI route is kept in an in-memory server map for up to one hour and trimmed to the last 10 messages.
+- The rate limiter is in-memory and scoped by client-supplied session id, so it is useful for basic abuse control but not a hardened production quota system.
+- Geolocation is requested only after the user activates the "Near Me" flow. Coordinates may be sent to Nominatim for reverse geocoding and to the LLM route as prompt context.
+- Emergency and safety information is bundled for convenience and should not replace official emergency services or local authority guidance.
 
-### Voice Flow
-1. User taps the mic → `SpeechRecognition` starts capturing audio
-2. Live transcript shown as the user speaks
-3. On silence / tap stop → transcript sent to `/api/turn`
-4. Groq streams back a structured JSON response (text + recommendation cards)
-5. `SpeechSynthesis` reads the assistant text aloud
-6. Cards appear in the chat thread below the response
+## Browser Support
 
-### AI Context Injection
-Every LLM request includes all available context:
+| Capability | Notes |
+| --- | --- |
+| Voice input | Requires browser support for `SpeechRecognition`; Firefox support is limited. |
+| Voice output | Uses `SpeechSynthesis` where available. |
+| Geolocation | Requires HTTPS or localhost and user permission in modern browsers. |
+| Native share | Uses `navigator.share` with clipboard fallback. |
+| Clipboard | Requires browser permission and secure context in some browsers. |
+| Map | Requires network access to map tiles and Nominatim geocoding. |
 
-```
-City:    "You are helping a backpacker currently in Melbourne."
-Weather: "Currently 18°C and overcast. Suggest warm indoor spots or covered venues."
-Budget:  "Daily budget $80. Spent $55. Remaining $25. Prioritise free or cheap options."
-GPS:     "User is at Fitzroy, Melbourne (-37.79, 144.98). Recommend walking-distance places."
-History: Full conversation history for coherent multi-turn dialogue.
-```
+## Troubleshooting
 
-### Map Architecture
-The map and chat panels are **both always mounted** in the DOM using absolute CSS stacking (`z-index` + `opacity` + `pointer-events: none`). This prevents Leaflet's tile-loading failure that occurs when a container is initialised inside `display: none`. The user sees an instant tab switch; Leaflet never knows the map was "hidden".
+### `GROQ_API_KEY not configured`
 
-### API Routes (Server-Side Proxies)
-All external API keys stay server-side. Three thin proxy routes:
-- `/api/turn` — streams Groq LLM responses as SSE
-- `/api/weather` — fetches OWM current + 5-day forecast, builds 7-day summary, caches 30 min
-- `/api/currency` — fetches exchange rates, caches 6 hours
+Create `.env.local`, add `GROQ_API_KEY`, and restart the dev server. Next.js only loads new environment variables at process start.
 
----
+### Weather shows seasonal estimates
 
-## Deployment
+This is expected when `OPENWEATHERMAP_API_KEY` is missing, inactive, rate-limited, or unavailable. Add a valid key and restart the dev server for live weather.
 
-### Vercel (Recommended)
+### Currency rates look approximate
 
-```bash
-npx vercel
-```
+Without `EXCHANGE_RATE_API_KEY`, the app returns bundled approximate rates. Add a valid ExchangeRate-API key for live AUD conversion.
 
-Add your three environment variables in **Vercel Dashboard → Settings → Environment Variables**.
+### Microphone does not start
 
-The app deploys as a standard Next.js serverless application. No additional configuration required.
+Use a browser with Web Speech API support, allow microphone permissions, and run on `localhost` or HTTPS. The text input path still works without microphone access.
 
----
+### GPS does not return a suburb
 
-## Browser Compatibility
+The browser may block location, the request may time out, or Nominatim may not return suburb-level data for the coordinate. The app can still use city-level context.
 
-| Feature | Chrome | Edge | Safari (iOS) | Firefox |
-|---|---|---|---|---|
-| Voice Input | ✅ | ✅ | ✅ | ❌ |
-| Voice Output | ✅ | ✅ | ✅ | ✅ |
-| GPS / Near Me | ✅ | ✅ | ✅ | ✅ |
-| Map | ✅ | ✅ | ✅ | ✅ |
-| Share Sheet | ✅ Mobile | ✅ Mobile | ✅ | ❌ (clipboard fallback) |
+### Map looks empty or markers are missing
 
-> Voice input (SpeechRecognition) is not supported in Firefox. All other features work across modern browsers.
+Check network access to CARTO tiles and Nominatim. Chat-derived markers only appear when AI card bullets contain a recognizable place name before a dash.
 
----
+## Roadmap And Limitations
 
-## Known Limitations
+Planned or natural next improvements:
 
-- **Estimates only** — all costs, travel times, and schedules are approximate. Always verify with official sources (Opal, myki, go card for transit; venue websites for hours/prices).
-- **No real-time transit data** — the assistant uses general knowledge, not live GTFS feeds.
-- **In-memory LLM session** — conversation history lives in the server process; server restarts clear it. Client-side chat history persists in component state for the browser session.
+- Add unit tests for route validation, prompt context, localStorage hooks, and map parsing helpers.
+- Add Playwright coverage for the main user flows: ask, save, map, budget, itinerary, share, and SOS.
+- Replace in-memory session storage and rate limiting with durable storage for production deployments.
+- Add stronger schema validation with a dedicated runtime validator.
+- Add live transit data where available instead of relying on model knowledge.
+- Add richer accessibility coverage for voice-first and mobile interactions.
+- Add a real license file if the project is intended for open-source reuse.
 
----
+Current limitations:
+
+- AI place, price, schedule, and transport suggestions can be wrong or outdated and should be checked against official sources.
+- The LLM route requires Groq; without `GROQ_API_KEY`, the assistant cannot answer.
+- Server memory resets on redeploys, cold starts, and process restarts.
+- No database means user data is browser-local and will not sync across devices.
+- Speech recognition and native sharing vary significantly by browser.
+- The repository does not currently include screenshots or a deployed demo URL.
 
 ## License
 
-MIT — do whatever you like with it.
-
----
-
-*Made for the backpackers who ask "what's near me?" before opening Google Maps.*
+No license file is currently included in this repository.
