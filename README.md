@@ -4,7 +4,7 @@
 
 Ask anything out loud. Get instant, localised recommendations — hostels, eats, activities, transport — all tailored to your city, budget, and the weather right now.
 
-![Built with Next.js 15](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=flat-square&logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06b6d4?style=flat-square&logo=tailwindcss) ![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-orange?style=flat-square)
+![Built with Next.js 16](https://img.shields.io/badge/Built%20with-Next.js%2016-black?style=flat-square&logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06b6d4?style=flat-square&logo=tailwindcss) ![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.3-orange?style=flat-square)
 
 ---
 
@@ -94,7 +94,7 @@ Tap the red **SOS** button anytime for instant safety info — works offline.
 
 | Layer | Tech |
 |---|---|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Language | TypeScript 5 |
 | Styling | Tailwind CSS v4 |
 | LLM | Groq Cloud — Llama 3.3 70B Versatile (SSE streaming) |
@@ -170,7 +170,7 @@ backpacker/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20.9+ (Node 20.19 is pinned in `.nvmrc`)
 - A free [Groq Cloud](https://console.groq.com) API key (required)
 - *(Optional)* [OpenWeatherMap](https://openweathermap.org/api) API key — free tier; seasonal fallback works without it
 - *(Optional)* [ExchangeRate-API](https://www.exchangerate-api.com) key — free tier; app works without it
@@ -178,8 +178,8 @@ backpacker/
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/backpackbuddy-au.git
-cd backpackbuddy-au
+git clone https://github.com/KarthikRamesh9149/BackpackerAI.git
+cd BackpackerAI
 npm install
 ```
 
@@ -209,6 +209,16 @@ Open [http://localhost:3000](http://localhost:3000) — allow microphone access 
 npm run build
 npm start
 ```
+
+### Quality Checks
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+`npm run check` runs all three commands in the same order used by CI.
 
 ---
 
