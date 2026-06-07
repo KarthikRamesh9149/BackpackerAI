@@ -258,7 +258,7 @@ export async function POST(request: Request) {
           });
         }
 
-        let parsed = extractJSON(fullText);
+        const parsed = extractJSON(fullText);
         let validated = validateLLMResponse(parsed);
 
         if (!validated) {
