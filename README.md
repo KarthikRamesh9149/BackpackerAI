@@ -320,7 +320,7 @@ Planned or natural next improvements:
 - Add stronger schema validation with a dedicated runtime validator.
 - Add live transit data where available instead of relying on model knowledge.
 - Add richer accessibility coverage for voice-first and mobile interactions.
-- Add a real license file if the project is intended for open-source reuse.
+- Add production deployment screenshots or a short demo video once the app is hosted.
 
 Current limitations:
 
