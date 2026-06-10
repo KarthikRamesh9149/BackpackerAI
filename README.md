@@ -11,6 +11,12 @@ BackpackerAI powers **BackpackBuddy AU**, a mobile-oriented travel assistant tha
 
 The project is intentionally lightweight: no auth system, no database, and no long-lived user account. A small set of Next.js API routes protects server-side API keys while the browser owns user state through `localStorage`.
 
+## Product Screenshot
+
+Real local mobile viewport run of the Next.js app. The screenshot uses the bundled city/weather/map fallback paths; live AI responses require `GROQ_API_KEY`.
+
+![BackpackBuddy AU mobile dashboard for Melbourne travel planning](docs/assets/screenshots/backpacker-dashboard.png)
+
 ## Why This Matters
 
 Travel apps often split core backpacker workflows across search, maps, weather, notes, currency tools, emergency pages, and transit guides. BackpackerAI explores a more cohesive interface: ask in natural language, receive actionable cards, save useful answers, map places, keep a budget, and export a trip plan from the same screen.
